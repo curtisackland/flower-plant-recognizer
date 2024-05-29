@@ -4,6 +4,8 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+const backEndUrl = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND_URL : 'http://localhost:3001';
+
 function ChatMessage({ value }) {
   return (
       <div className={value.from === 'user' ? 'chat-message-container-user' : 'chat-message-container'}>
@@ -66,19 +68,17 @@ export default function MainContainer() {
 
 
       // TODO add error message and update url
-      try {
-        await axios.post('http://localhost:3001/send-message', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }).then(response => {
-          console.log(response.data);
-          newMessages[newMessages.length - 1] = {from: response.data.from, image: response.data.image, message: response.data.message};
-          setMessages(messages => newMessages);
-        }).catch(error => {console.log(error)});
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+      await axios.post(backEndUrl + '/send-message', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(response => {
+        newMessages[newMessages.length - 1] = {from: response.data.from, image: response.data.image, message: response.data.message};
+        setMessages(messages => newMessages);
+      }).catch(error => {
+        newMessages[newMessages.length - 1] = {from: 'app', image: null, message: 'Error retrieving response. Please try again.'};
+        setMessages(messages => newMessages);
+      });
 
       // Clear the input field
       setUserInput('');

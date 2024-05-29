@@ -40,8 +40,10 @@ app.post('/send-message', upload.none(), async (req, res) => {
                 message: response.data.candidates[0].content.parts[0].text
             });
         }
+
+        return res.status(400).send({error: 'No messages were sent!'});
     } catch (error) {
-        return res.status(500).send({error: error.toString()})
+        return res.status(500).send({error: error.toString()});
     }
 })
 
