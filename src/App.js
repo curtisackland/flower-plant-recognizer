@@ -1,6 +1,8 @@
 import './App.css';
 import {useRef, useState, useEffect} from 'react';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function ChatMessage({ value }) {
   return (
@@ -8,9 +10,9 @@ function ChatMessage({ value }) {
         {value.image && (
             <img style={{ maxWidth: '100%', maxHeight: '52px' }} src={value.image}  alt="user uploaded"/>
         )}
-        <div className={value.from === 'user' ? 'chat-message-user' : 'chat-message'}>
-          {value.text}
-        </div>
+        <ReactMarkdown className={value.from === 'user' ? 'chat-message-user' : 'chat-message'} remarkPlugins={[remarkGfm]}>
+          {value.message}
+        </ReactMarkdown>
       </div>
   );
 }
@@ -23,9 +25,6 @@ export default function MainContainer() {
 
   // handle images
   const handleFileChange = (event) => {
-    setUserImage(event.target.files[0]);
-
-    /**
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -34,7 +33,6 @@ export default function MainContainer() {
       };
       reader.readAsDataURL(file);
     }
-        */
   };
 
   // Handle input change
@@ -57,14 +55,15 @@ export default function MainContainer() {
   };
 
   const handleSendMessage = async () => {
-    if (userInput.trim()) {
+    if (userInput.trim() || userImage) {
 
       const formData = new FormData();
-      if (userImage)
-        formData.append('image', userImage);
+      let newMessages = [...messages, {from: 'user', image: userImage, message: userInput}]
+      formData.append('messages', JSON.stringify(newMessages));
+      newMessages = [...newMessages, {from: 'app', image: null, message: '. . . '}];
 
-      if (userInput.trim())
-        formData.append('message', userInput);
+      await setMessages(messages => newMessages);
+
 
       // TODO add error message and update url
       try {
@@ -73,12 +72,13 @@ export default function MainContainer() {
             'Content-Type': 'multipart/form-data'
           }
         }).then(response => {
-          setMessages([...messages, {from: 'user', image: userImage, text: userInput}, {from: response.data.from, image: response.data.image, text: response.data.message}]);
+          console.log(response.data);
+          newMessages[newMessages.length - 1] = {from: response.data.from, image: response.data.image, message: response.data.message};
+          setMessages(messages => newMessages);
         }).catch(error => {console.log(error)});
       } catch (error) {
         console.error('Error uploading file:', error);
       }
-
 
       // Clear the input field
       setUserInput('');
@@ -120,7 +120,7 @@ export default function MainContainer() {
   )
 }
 
-const starterMessage = [{from: 'app', image: null, text: 'Upload an image of your plant or describe it and I will help you identify its name.'}];
+const starterMessage = [{from: 'app', image: null, message: 'Upload an image of your plant or describe it and I will help you identify its name.'}];
 
 
 
