@@ -3,18 +3,25 @@ import {useRef, useState, useEffect} from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import NavBar from "./components/NavBar/NavBar";
+import {mdiSend, mdiUpload} from "@mdi/js";
+import Icon from "@mdi/react";
 
 const backEndUrl = process.env.REACT_APP_BACKEND_URL ? process.env.REACT_APP_BACKEND_URL : 'http://localhost:3001';
 
 function ChatMessage({ value }) {
   return (
       <div className={value.from === 'user' ? 'chat-message-container-user' : 'chat-message-container'}>
-        {value.image && (
-            <img style={{ maxWidth: '100%', maxHeight: '52px' }} src={value.image}  alt="user uploaded"/>
-        )}
-        <ReactMarkdown className={value.from === 'user' ? 'chat-message-user' : 'chat-message'} remarkPlugins={[remarkGfm]}>
-          {value.message}
-        </ReactMarkdown>
+        <div className={value.from === 'user' ? 'chat-message-user' : 'chat-message'}>
+          {value.image && (
+              <div style={{width: '100%', display: 'flex', justifyContent: 'end', alignItems: 'center'}}>
+                <img style={{ maxWidth: '100%', maxHeight: '100px' }} src={value.image}  alt="user uploaded"/>
+              </div>
+          )}
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {value.message}
+          </ReactMarkdown>
+        </div>
       </div>
   );
 }
@@ -24,6 +31,8 @@ export default function MainContainer() {
   const [userInput, setUserInput] = useState('');
   const [userImage, setUserImage] = useState(null);
   const messageContainerRef = useRef(null);
+  const [disableInput, setDisableInput] = useState(false);
+  const [imageKey, setImageKey] = useState(0);
 
   // handle images
   const handleFileChange = (event) => {
@@ -36,6 +45,11 @@ export default function MainContainer() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleDeleteImage = () => {
+    setUserImage(null);
+    setImageKey(prevKey => prevKey + 1);
+  }
 
   // Handle input change
   const handleInputChange = (event) => {
@@ -58,31 +72,46 @@ export default function MainContainer() {
 
   const handleSendMessage = async () => {
     if (userInput.trim() || userImage) {
+      setDisableInput(true);
 
       const formData = new FormData();
       let newMessages = [...messages, {from: 'user', image: userImage, message: userInput}]
       formData.append('messages', JSON.stringify(newMessages));
       newMessages = [...newMessages, {from: 'app', image: null, message: '. . . '}];
 
-      await setMessages(messages => newMessages);
+      // Clear the input field
+      setUserInput('');
+      handleDeleteImage();
 
+      await setMessages(newMessages);
 
-      // TODO add error message and update url
       await axios.post(backEndUrl + '/send-message', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       }).then(response => {
-        newMessages[newMessages.length - 1] = {from: response.data.from, image: response.data.image, message: response.data.message};
-        setMessages(messages => newMessages);
+        setMessages(prevMessages => {
+          const updatedMessages = [...prevMessages];
+          updatedMessages[updatedMessages.length - 1] = {
+            from: response.data.from,
+            image: response.data.image,
+            message: response.data.message
+          };
+          return updatedMessages;
+        });
       }).catch(error => {
-        newMessages[newMessages.length - 1] = {from: 'app', image: null, message: 'Error retrieving response. Please try again.'};
-        setMessages(messages => newMessages);
+        setMessages(prevMessages => {
+          const updatedMessages = [...prevMessages];
+          updatedMessages[updatedMessages.length - 1] = {
+            from: 'app',
+            image: null,
+            message: 'Error retrieving response. Please try again or refresh the page.'
+          };
+          return updatedMessages;
+        });
       });
 
-      // Clear the input field
-      setUserInput('');
-      setUserImage(null);
+      setDisableInput(false);
     }
   }
 
@@ -92,35 +121,53 @@ export default function MainContainer() {
 
   return (
       <>
-        <div className="main-container">
-          <div className="chat-messages" ref={messageContainerRef}>
-            {messages.map((msg, index) => (
-                <ChatMessage key={index} value={msg} />
-            ))}
-          </div>
-          <div className="user-input">
-            <input type="file" onChange={handleFileChange} />
+        <div className="page-container">
+          <NavBar></NavBar>
+          <div className="main-container">
+            <div className="chat-messages" ref={messageContainerRef}>
+              {messages.map((msg, index) => (
+                  <ChatMessage key={index} value={msg}/>
+              ))}
+            </div>
             {userImage && (
-                <div>
-                  <img src={userImage} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: '52px' }} />
+                <div className="user-image-container">
+                  <img src={userImage} alt="Uploaded" style={{maxWidth: '100%', maxHeight: '100px'}}/>
+                  <button className="delete-button" onClick={handleDeleteImage}></button>
                 </div>
             )}
-            <input
-                type="text"
-                value={userInput}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder="Message Flower Plant Recognizer"
-                alt="upload image or prompt"
-                className="user-input-field"/>
-            <button className="send-user-input-button" onClick={handleSendMessage}>Send</button>
+            <div className="user-input">
+            <div className="file-input-wrapper">
+                <input type="file" key={imageKey} id="fileInput" className="file-input" onChange={handleFileChange} disabled={disableInput} />
+                <label htmlFor="fileInput" className={`file-input-label ${disableInput ? 'disabled' : ''}`}>
+                  <Icon path={mdiUpload} size={1}></Icon>
+                </label>
+              </div>
+              <input
+                  type="text"
+                  value={userInput}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  disabled={disableInput}
+                  placeholder="Message Flower Plant Recognizer"
+                  alt="upload image or prompt"
+                  className="user-input-field"/>
+              <button className="send-user-input-button" disabled={disableInput} onClick={handleSendMessage}>
+                <Icon path={mdiSend} size={1}></Icon>
+              </button>
+            </div>
           </div>
         </div>
       </>
   )
 }
 
-const starterMessage = [{from: 'app', image: null, message: 'Upload an image of your plant or describe it and I will help you identify its name.'}];
+const starterMessage = [{
+  from: 'app',
+  image: null,
+  message: 'Welcome to **Flower Plant Recognizer**!  ' +
+      '\n\n Upload an image or describe a flower and I will help you identify it!  ' +
+      '\n\n I can also provide you with insightful information about flowers and plants like its scientific name, origin, growing conditions, care tips, and interesting facts!'
+}];
 
 
 

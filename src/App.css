@@ -1,23 +1,28 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .main-container {
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  max-width: 700px; /* Adjust the max-width as needed */
-  width: 90%; /* Adjust the width to fit smaller screens */
-  height: 95vh;
-  margin: 0 auto;
-  padding: 20px; /* Optional padding */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
-  background-color: #fff; /* Optional background color */
-  border-radius: 8px; /* Optional rounded corners */
-  box-sizing: border-box; /* Ensures padding doesn't affect total width */
+  max-width: 700px;
+  margin: 10px auto;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
   .main-container {
-    width: 100%; /* Full width on very small screens */
-    padding: 10px; /* Reduce padding for small screens */
+    margin: 10px 10px;
   }
 }
 
@@ -60,18 +65,130 @@
   margin: 5px 0;
 }
 
+.user-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-items: center;
+  padding: 5px;
+  background-color: teal;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.delete-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(255, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.delete-button::before,
+.delete-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 2px;
+  background-color: white; /* White X lines */
+}
+
+.delete-button::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.delete-button::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .user-input {
   display: flex;
-  justify-content: center;
   align-items: center;
   width: 100%;
-  height: 52px;
+  min-height: 52px;
+  border-radius: 5px;
+  padding: 0 8px;
+  background-color: teal;
 }
 
 .user-input-field {
   width: 100%;
+  padding: 10px 15px;
+  margin: 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  font-size: 16px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.user-input-field:focus {
+  border-color: #66afe9;
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+  outline: none;
+}
+
+.user-input-field::placeholder {
+  color: #999;
+}
+
+.user-input-field:hover {
+  border-color: #888;
 }
 
 .send-user-input-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 5px;
+  height: 40px;
+  width: 40px;
+  transition: background-color 0.3s;
+}
 
+.send-user-input-button:hover {
+  cursor: pointer;
+  background-color: cadetblue;
+}
+
+.send-user-input-button:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.file-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #F0F0F0;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.file-input-label:hover {
+  background-color: cadetblue;
+}
+
+.file-input-label.disabled {
+  background-color: rgba(239, 239, 239, 0.3);
+  color: rgb(84, 84, 84);
+  cursor: default;
+  pointer-events: none;
 }

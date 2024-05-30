@@ -1,0 +1,38 @@
+.NavBar {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    text-align: center;
+    align-items: center;
+    justify-content: space-between;
+    background-color: teal;
+    box-shadow: 0 10px 5px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+    padding: 0 10px;
+}
+
+.title-container {
+    display: flex;
+    flex-wrap: wrap;
+    text-align: center;
+    align-items: center;
+}
+
+.small-screen-title {
+    display: none;
+}
+
+@media (max-width: 550px) {
+    .big-screen-title {
+        display: none;
+    }
+
+    .small-screen-title {
+        display: inline;
+    }
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}

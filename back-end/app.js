@@ -10,7 +10,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const upload = multer();
+const upload = multer({
+    limits: {
+        fieldSize: 25 * 1024 * 1024 // 25MB limit for field size
+    }
+});
 
 app.get('/', async (req, res) => {
     return res.status(200).send("Up and running!");
@@ -40,10 +44,9 @@ app.post('/send-message', upload.none(), async (req, res) => {
                 message: response.data.candidates[0].content.parts[0].text
             });
         }
-
         return res.status(400).send({error: 'No messages were sent!'});
     } catch (error) {
-        return res.status(500).send({error: error.toString()});
+        return res.status(400).send({error: 'Error! If you are uploading an image, make sure its below 25MB and valid file type (png, jpeg, jpg, gif...).'});
     }
 })
 
