@@ -14,6 +14,8 @@ COPY . .
 # 'PWD' is an environment variable that stores the path of the current working directory
 ENV PYTHONPATH=${PYTHONPATH}:${PWD}
 
+ENV REACT_APP_BACKEND_URL=https://back-end-ufb75eeywa-uk.a.run.app
+
 # Set the environment variable for the application's port
 # (Be sure to replace '4200' with your application's specific port number if different)
 ENV PORT 3000
